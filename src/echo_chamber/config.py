@@ -66,7 +66,7 @@ class Settings(BaseSettings):
         return SecretStr(v)
 
     @model_validator(mode="after")
-    def _require_at_least_one_llm_provider(self) -> "Settings":
+    def _require_at_least_one_llm_provider(self) -> Settings:
         if not self.openai_api_key and not self.anthropic_api_key:
             msg = (
                 "At least one LLM provider must be configured: "

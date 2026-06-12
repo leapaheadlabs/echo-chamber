@@ -118,7 +118,7 @@ def test_config_requires_llm_provider() -> None:
 
     from echo_chamber.config import Settings
 
-    # Neither provider → should raise
+    # Neither provider -> should raise
     with pytest.raises(ValueError, match="LLM provider"):
         Settings(
             _env_file=None,
@@ -127,7 +127,7 @@ def test_config_requires_llm_provider() -> None:
             anthropic_api_key=None,
         )
 
-    # At least one → OK
+    # At least one -> OK
     settings = Settings(
         _env_file=None,
         db_password=SecretStr("test"),
@@ -252,7 +252,7 @@ def test_cortex_decision_model() -> None:
 
 
 def test_cortex_decision_confidence_bounds() -> None:
-    """CortexDecision confidence is clamped 0.0–1.0."""
+    """CortexDecision confidence is clamped 0.0-1.0."""
     from pydantic import ValidationError
 
     from echo_chamber.cortex.state import CortexDecision
@@ -296,7 +296,6 @@ def test_cortex_state_minimal() -> None:
 def test_cortex_state_full_pipeline() -> None:
     """CortexState accepts full pipeline state."""
     from echo_chamber.cortex.state import (
-        AutonomyLevel,
         CortexDecision,
         CortexState,
         Signal,

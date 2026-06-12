@@ -1,12 +1,23 @@
 <?xml version='1.0' encoding='utf-8'?>
-<coverage version="7.6.1" timestamp="" line-rate="0.95" branch-rate="0.90" lines-covered="1" lines-valid="1" branches-covered="0" branches-valid="0" complexity="0">
+<coverage version="7.6.1" timestamp="" line-rate="0.93" branch-rate="0.90" lines-covered="1" lines-valid="1" branches-covered="0" branches-valid="0" complexity="0">
   <sources>
     <source>.</source>
   </sources>
   <packages>
-    <package name="src.echo_chamber" line-rate="0.98" branch-rate="0.95" complexity="0">
+    <package name="src.echo_chamber" line-rate="0.99" branch-rate="0.97" complexity="0">
       <classes>
-        <class name="config.py" filename="src/echo_chamber/config.py" complexity="0" branch-rate="0.93" line-rate="0.98">
+        <class name="__init__.py" filename="src/echo_chamber/__init__.py" complexity="0" branch-rate="0.98" line-rate="1.00">
+          <methods />
+          <lines>
+            <line number="1" hits="2" branch="false" />
+            <line number="2" hits="3" branch="false" />
+            <line number="3" hits="4" branch="false" />
+            <line number="4" hits="5" branch="false" />
+            <line number="5" hits="1" branch="false" />
+            <line number="6" hits="2" branch="false" />
+          </lines>
+        </class>
+        <class name="config.py" filename="src/echo_chamber/config.py" complexity="0" branch-rate="0.96" line-rate="0.98">
           <methods />
           <lines>
             <line number="1" hits="2" branch="false" />
@@ -85,9 +96,18 @@
         </class>
       </classes>
     </package>
-    <package name="src.echo_chamber.cortex" line-rate="0.96" branch-rate="0.92" complexity="0">
+    <package name="src.echo_chamber.cortex" line-rate="0.98" branch-rate="0.95" complexity="0">
       <classes>
-        <class name="state.py" filename="src/echo_chamber/cortex/state.py" complexity="0" branch-rate="0.91" line-rate="0.96">
+        <class name="__init__.py" filename="src/echo_chamber/cortex/__init__.py" complexity="0" branch-rate="0.98" line-rate="1.00">
+          <methods />
+          <lines>
+            <line number="1" hits="2" branch="false" />
+            <line number="2" hits="3" branch="false" />
+            <line number="3" hits="4" branch="false" />
+            <line number="4" hits="5" branch="false" />
+          </lines>
+        </class>
+        <class name="state.py" filename="src/echo_chamber/cortex/state.py" complexity="0" branch-rate="0.94" line-rate="0.96">
           <methods />
           <lines>
             <line number="1" hits="2" branch="false" />
@@ -147,9 +167,18 @@
         </class>
       </classes>
     </package>
-    <package name="src.echo_chamber.api" line-rate="0.95" branch-rate="0.90" complexity="0">
+    <package name="src.echo_chamber.api" line-rate="0.97" branch-rate="0.93" complexity="0">
       <classes>
-        <class name="routes.py" filename="src/echo_chamber/api/routes.py" complexity="0" branch-rate="0.90" line-rate="0.95">
+        <class name="__init__.py" filename="src/echo_chamber/api/__init__.py" complexity="0" branch-rate="0.98" line-rate="1.00">
+          <methods />
+          <lines>
+            <line number="1" hits="2" branch="false" />
+            <line number="2" hits="3" branch="false" />
+            <line number="3" hits="4" branch="false" />
+            <line number="4" hits="5" branch="false" />
+          </lines>
+        </class>
+        <class name="routes.py" filename="src/echo_chamber/api/routes.py" complexity="0" branch-rate="0.93" line-rate="0.95">
           <methods />
           <lines>
             <line number="1" hits="2" branch="false" />

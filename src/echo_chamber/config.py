@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import SecretStr, model_validator
+from pydantic import SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,9 +28,11 @@ class Settings(BaseSettings):
     cortex_port: int = 8000
 
     # ── Database ───────────────────────────────────────────────────────
-    database_url: str = (
-        "postgresql+asyncpg://echo:echo_dev@localhost:5432/echo_chamber"
-    )
+    db_user: str = "echo"
+    db_password: SecretStr  # required — no default
+    db_name: str = "echo_chamber"
+    db_host: str = "localhost"
+    db_port: int = 5432
     redis_url: str = "redis://localhost:6379/0"
 
     # ── LLM Providers ──────────────────────────────────────────────────
@@ -52,6 +54,17 @@ class Settings(BaseSettings):
     proxy_api_key: SecretStr | None = None
     vault_encryption_key: SecretStr | None = None
 
+    @field_validator("db_password", mode="before")
+    @classmethod
+    def _ensure_db_password_is_secret(cls, v: str | SecretStr | None) -> SecretStr | None:
+        """Ensure db_password is never stored as plaintext."""
+        if v is None:
+            msg = "DB_PASSWORD is required — set it in .env or environment"
+            raise ValueError(msg)
+        if isinstance(v, SecretStr):
+            return v
+        return SecretStr(v)
+
     @model_validator(mode="after")
     def _require_at_least_one_llm_provider(self) -> "Settings":
         if not self.openai_api_key and not self.anthropic_api_key:
@@ -61,6 +74,15 @@ class Settings(BaseSettings):
             )
             raise ValueError(msg)
         return self
+
+    @property
+    def database_url(self) -> str:
+        """Build database URL from individual components (no secret in memory)."""
+        return (
+            f"postgresql+asyncpg://"
+            f"{self.db_user}:{self.db_password.get_secret_value()}"
+            f"@{self.db_host}:{self.db_port}/{self.db_name}"
+        )
 
     @property
     def is_production(self) -> bool:

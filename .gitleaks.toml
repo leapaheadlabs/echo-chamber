@@ -9,27 +9,26 @@ useDefault = true
 [allowlist]
   description = "Global allowlist"
 
-  # Allow test/demo credentials in test files
+  # Allow test/demo credentials in test files and docs only
   paths = [
     '''tests/.*''',
     '''.env.example''',
-    '''docker-compose.yml''',
-    '''.github/workflows/.*''',
+    '''.github/workflows/.*\\.yml''',
     '''README.md''',
-    '''.*\.md$'''
+    '''.*\\.md$'''
   ]
 
-  # Allow known test/demo values
+  # Allow known test/demo values (not real secrets)
   regexes = [
     '''echo_test''',
     '''echo_chamber_test''',
     '''test_secret_key_do_not_use_in_prod''',
-    '''PASSWORD=echo_test_password''',
+    '''change-me-in-production''',
     '''EXAMPLE_API_KEY'''
   ]
 
 [rules.allowlist]
-  commits = []  # No commits are exempt
+  commits = []
 
 # Custom detection rules
 [[rules]]
@@ -47,11 +46,11 @@ useDefault = true
 [[rules]]
   description = "Reddit client secret"
   id = "reddit-secret"
-  regex = '''(?i)(reddit.*secret["'\s:=]+['"][a-zA-Z0-9_-]{20,}['"])'''
+  regex = '''(?i)(reddit.*secret[\"'\\s:=]+['"][a-zA-Z0-9_-]{20,}['"])'''
   tags = ["api-key", "reddit"]
 
 [[rules]]
   description = "Discord bot token"
   id = "discord-bot-token"
-  regex = '''([MNO][a-zA-Z\d_-]{23,25}\.[\w-]{6}\.[\w-]{27,})'''
+  regex = '''([MNO][a-zA-Z\\d_-]{23,25}\\.[\\w-]{6}\\.[\\w-]{27,})'''
   tags = ["api-key", "discord"]

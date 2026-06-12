@@ -11,3 +11,4 @@ import pytest
 def _isolate_env() -> None:
     """Ensure tests never touch real credentials."""
     os.environ["ENVIRONMENT"] = "test"
+    os.environ["DB_PASSWORD"] = "echo_test_password"

@@ -71,6 +71,8 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -83,17 +85,22 @@ jobs:
         run: poetry install --no-interaction --only main,dev
       - name: pytest
         env:
-          DATABASE_URL: postgresql+asyncpg://echo:echo_test@localhost:5432/echo_chamber_test
-          REDIS_URL: redis://localhost:6379/0
+          DB_PASSWORD: echo_test
           ENVIRONMENT: test
         run: poetry run pytest --cov=src --cov-report=xml --cov-report=term-missing -v
-      - name: Upload coverage
+      - name: Upload coverage XML
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage.xml
           retention-days: 7
+      - name: SonarScanner
+        if: env.SONAR_HOST_URL != '' || env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   bandit:
     name: SAST (bandit)
@@ -107,7 +114,7 @@ jobs:
       - name: Install bandit
         run: pip install bandit[toml]
       - name: bandit scan
-        run: bandit -c pyproject.toml -r src/ -f sarif -o bandit.sarif || true
+        run: bandit -c pyproject.toml -r src/ -f sarif -o bandit.sarif
       - name: Upload bandit SARIF
         if: always()
         uses: github/codeql-action/upload-sarif@v3

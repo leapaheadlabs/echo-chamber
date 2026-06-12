@@ -1,3 +1,4 @@
+---
 version: "3.9"
 
 services:
@@ -10,7 +11,7 @@ services:
     ports:
       - "${CORTEX_PORT:-8000}:8000"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://echo:${DB_PASSWORD:-echo_dev}@postgres:5432/echo_chamber
+      - DATABASE_URL=postgresql+asyncpg://${DB_USER:-echo}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-echo_chamber}
       - REDIS_URL=redis://redis:6379/0
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
@@ -40,14 +41,14 @@ services:
     ports:
       - "${DB_PORT:-5432}:5432"
     environment:
-      - POSTGRES_USER=echo
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-echo_dev}
-      - POSTGRES_DB=echo_chamber
+      - POSTGRES_USER=${DB_USER:-echo}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME:-echo_chamber}
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./src/echo_chamber/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "echo", "-d", "echo_chamber"]
+      test: ["CMD", "pg_isready", "-U", "${DB_USER:-echo}", "-d", "${DB_NAME:-echo_chamber}"]
       interval: 10s
       timeout: 5s
       retries: 5

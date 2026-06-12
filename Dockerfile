@@ -44,12 +44,12 @@ RUN groupadd -r echo && useradd -r -g echo -d /app echo
 
 WORKDIR /app
 
-# Copy installed packages from builder
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+# Copy installed packages from builder (read+execute, no write)
+COPY --from=builder --chmod=755 /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder --chmod=755 /usr/local/bin /usr/local/bin
 
-# Copy application code
-COPY --chown=echo:echo src/ ./src/
+# Copy application code (read+execute, no write — runtime is immutable)
+COPY --chown=echo:echo --chmod=555 src/ ./src/
 
 USER echo
 

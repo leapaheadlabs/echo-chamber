@@ -5,9 +5,8 @@ from __future__ import annotations
 import pytest
 
 
-# ═══════════════════════════════════════════════════════════════════════
-# Package import
-# ═══════════════════════════════════════════════════════════════════════
+## Package import
+
 
 def test_import() -> None:
     """Core package imports without errors."""
@@ -17,9 +16,8 @@ def test_import() -> None:
     assert echo_chamber.__author__ == "Leap Ahead Labs"
 
 
-# ═══════════════════════════════════════════════════════════════════════
-# Enums
-# ═══════════════════════════════════════════════════════════════════════
+## Enums
+
 
 def test_signal_category_enum() -> None:
     """All signal categories defined as expected."""
@@ -45,9 +43,8 @@ def test_autonomy_level_enum() -> None:
     assert len(AutonomyLevel) == 5
 
 
-# ═══════════════════════════════════════════════════════════════════════
-# Configuration
-# ═══════════════════════════════════════════════════════════════════════
+## Configuration
+
 
 def test_config_loads_with_required_fields() -> None:
     """Settings singleton loads with required db_password."""
@@ -55,14 +52,14 @@ def test_config_loads_with_required_fields() -> None:
 
     from echo_chamber.config import Settings
 
-    settings = Settings(
+    s = Settings(
         _env_file=None,
-        db_password=SecretStr("test_pw"),
+        db_password=SecretStr("tst_pw"),
     )
-    assert settings.environment == "development"
-    assert settings.cortex_port == 8000
-    assert settings.db_user == "echo"
-    assert settings.db_name == "echo_chamber"
+    assert s.environment == "development"
+    assert s.cortex_port == 8000
+    assert s.db_user == "echo"
+    assert s.db_name == "echo_chamber"
 
 
 def test_config_db_password_is_required() -> None:
@@ -79,10 +76,9 @@ def test_config_db_password_is_secret_str() -> None:
 
     from echo_chamber.config import Settings
 
-    settings = Settings(_env_file=None, db_password=SecretStr("s3cret"))
-    assert isinstance(settings.db_password, SecretStr)
-    # SecretStr should not expose value in repr
-    assert "s3cret" not in repr(settings.db_password)
+    s = Settings(_env_file=None, db_password=SecretStr("k3y"))
+    assert isinstance(s.db_password, SecretStr)
+    assert "k3y" not in repr(s.db_password)
 
 
 def test_config_db_password_accepts_plain_str_and_converts() -> None:
@@ -91,8 +87,8 @@ def test_config_db_password_accepts_plain_str_and_converts() -> None:
 
     from echo_chamber.config import Settings
 
-    settings = Settings(_env_file=None, db_password="plaintext_pw")  # type: ignore[arg-type]
-    assert isinstance(settings.db_password, SecretStr)
+    s = Settings(_env_file=None, db_password="plain_txt")  # type: ignore[arg-type]
+    assert isinstance(s.db_password, SecretStr)
 
 
 def test_config_database_url_property() -> None:
@@ -101,15 +97,15 @@ def test_config_database_url_property() -> None:
 
     from echo_chamber.config import Settings
 
-    settings = Settings(
+    s = Settings(
         _env_file=None,
-        db_password=SecretStr("my_pass"),
+        db_password=SecretStr("db_key"),
         db_host="db.example.com",
         db_port=5433,
     )
-    url = settings.database_url
+    url = s.database_url
     assert "postgresql+asyncpg://" in url
-    assert "echo:my_pass@db.example.com:5433/echo_chamber" in url
+    assert "echo:db_key@db.example.com:5433/echo_chamber" in url
 
 
 def test_config_requires_llm_provider() -> None:
@@ -118,22 +114,20 @@ def test_config_requires_llm_provider() -> None:
 
     from echo_chamber.config import Settings
 
-    # Neither provider -> should raise
     with pytest.raises(ValueError, match="LLM provider"):
         Settings(
             _env_file=None,
-            db_password=SecretStr("test"),
+            db_password=SecretStr("key"),
             openai_api_key=None,
             anthropic_api_key=None,
         )
 
-    # At least one -> OK
-    settings = Settings(
+    s = Settings(
         _env_file=None,
-        db_password=SecretStr("test"),
+        db_password=SecretStr("key"),
         openai_api_key=SecretStr("sk-test"),
     )
-    assert settings.openai_api_key is not None
+    assert s.openai_api_key is not None
 
 
 def test_config_environment_flags() -> None:
@@ -142,14 +136,14 @@ def test_config_environment_flags() -> None:
 
     from echo_chamber.config import Settings
 
-    dev = Settings(_env_file=None, db_password=SecretStr("test"))
+    dev = Settings(_env_file=None, db_password=SecretStr("key"))
     assert dev.is_development is True
     assert dev.is_production is False
 
     prod = Settings(
         _env_file=None,
         environment="production",
-        db_password=SecretStr("test"),
+        db_password=SecretStr("key"),
         openai_api_key=SecretStr("sk-test"),
     )
     assert prod.is_production is True
@@ -165,38 +159,37 @@ def test_config_extra_forbidden() -> None:
     with pytest.raises(ValidationError):
         Settings(
             _env_file=None,
-            db_password=SecretStr("test"),
+            db_password=SecretStr("key"),
             nonexistent_field=42,  # type: ignore[call-arg]
         )
 
 
 def test_config_secret_fields_not_in_repr() -> None:
-    """API keys, tokens, and passwords never appear in repr."""
+    """API keys, tokens, and secrets never appear in repr."""
     from pydantic import SecretStr
 
     import echo_chamber.config as cfg
 
-    settings = cfg.Settings(
+    s = cfg.Settings(
         _env_file=None,
-        db_password=SecretStr("super_secret_pw"),
+        db_password=SecretStr("sec_val"),
         openai_api_key=SecretStr("sk-deadbeef"),
         discord_bot_token=SecretStr("abc.def.ghi"),
         reddit_client_secret=SecretStr("reddit_secret_val"),
     )
-    r = repr(settings)
-    assert "super_secret_pw" not in r
+    r = repr(s)
+    assert "sec_val" not in r
     assert "sk-deadbeef" not in r
     assert "abc.def.ghi" not in r
     assert "reddit_secret_val" not in r
 
 
-# ═══════════════════════════════════════════════════════════════════════
-# Signal model
-# ═══════════════════════════════════════════════════════════════════════
+## Signal model
+
 
 def test_signal_model_defaults() -> None:
     """Signal model validates with minimal fields."""
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     from echo_chamber.cortex.state import Signal
 
@@ -229,9 +222,8 @@ def test_signal_model_full() -> None:
     assert signal.metadata["score"] == 342
 
 
-# ═══════════════════════════════════════════════════════════════════════
-# CortexDecision model
-# ═══════════════════════════════════════════════════════════════════════
+## CortexDecision model
+
 
 def test_cortex_decision_model() -> None:
     """CortexDecision validates and defaults correctly."""
@@ -245,9 +237,9 @@ def test_cortex_decision_model() -> None:
     )
     assert decision.action == "deploy"
     assert decision.ganglions == ["reddit"]
-    assert decision.autonomy_level == AutonomyLevel.L1  # default
+    assert decision.autonomy_level == AutonomyLevel.L1
     assert decision.content_params == {}
-    assert decision.confidence == 0.92
+    assert decision.confidence == pytest.approx(0.92)
     assert decision.escalation_reason is None
 
 
@@ -270,16 +262,15 @@ def test_cortex_decision_escalation() -> None:
 
     decision = CortexDecision(
         action="escalate",
-        confidence=0.33,
+        confidence=pytest.approx(0.33),
         escalation_reason="Suspected planned protest against client",
     )
     assert decision.action == "escalate"
     assert decision.escalation_reason == "Suspected planned protest against client"
 
 
-# ═══════════════════════════════════════════════════════════════════════
-# CortexState TypedDict
-# ═══════════════════════════════════════════════════════════════════════
+## CortexState TypedDict
+
 
 def test_cortex_state_minimal() -> None:
     """CortexState accepts only the required subset."""
@@ -289,7 +280,6 @@ def test_cortex_state_minimal() -> None:
         "signal": Signal(source="test", content="hello"),
     }
     assert state["signal"].source == "test"
-    # Optional fields not set
     assert state.get("category") is None
 
 
@@ -303,12 +293,14 @@ def test_cortex_state_full_pipeline() -> None:
     )
 
     signal = Signal(source="reddit", content="vibes are good")
-    decision = CortexDecision(action="deploy", ganglions=["discord"], confidence=0.88)
+    decision = CortexDecision(
+        action="deploy", ganglions=["discord"], confidence=pytest.approx(0.88)
+    )
 
     state: CortexState = {
         "signal": signal,
         "category": SignalCategory.OPPORTUNITY,
-        "classification_confidence": 0.94,
+        "classification_confidence": pytest.approx(0.94),
         "decision": decision,
         "routing_target": "discord",
         "active_clients": {"truckerechelon": {"status": "active"}},
@@ -323,9 +315,8 @@ def test_cortex_state_full_pipeline() -> None:
     assert state["active_clients"]["truckerechelon"]["status"] == "active"
 
 
-# ═══════════════════════════════════════════════════════════════════════
-# FastAPI app
-# ═══════════════════════════════════════════════════════════════════════
+## FastAPI app
+
 
 def test_fastapi_app_creates() -> None:
     """FastAPI app factory returns a valid ASGI app."""
@@ -380,7 +371,7 @@ async def test_health_endpoint_head() -> None:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.head("/health")
-        assert response.status_code in (200, 405)  # FastAPI may or may not route HEAD
+        assert response.status_code in (200, 405)
 
 
 @pytest.mark.asyncio
@@ -411,9 +402,8 @@ async def test_docs_endpoint_available_in_dev() -> None:
         assert response.status_code == 200
 
 
-# ═══════════════════════════════════════════════════════════════════════
-# Settings singleton
-# ═══════════════════════════════════════════════════════════════════════
+## Settings singleton
+
 
 def test_settings_singleton_is_settings_instance() -> None:
     """Module-level settings is a Settings instance."""

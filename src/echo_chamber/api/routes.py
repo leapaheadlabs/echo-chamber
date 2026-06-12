@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import time
-from collections.abc import AsyncGenerator
+from collections.abc import Awaitable, Callable
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from structlog import get_logger
 
 from echo_chamber.config import settings
@@ -19,13 +18,12 @@ def create_app() -> FastAPI:
     """Application factory."""
     app = FastAPI(
         title="ECHO CHAMBER",
-        description="AI Agent Marketing Amplification Engine — Cortex API",
+        description="AI Agent Marketing Amplification Engine - Cortex API",
         version="0.1.0",
         docs_url="/docs" if settings.is_development else None,
         redoc_url="/redoc" if settings.is_development else None,
     )
 
-    # Middleware
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -33,7 +31,6 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Register routes
     _register_routes(app)
 
     return app
@@ -47,7 +44,7 @@ def _register_routes(app: FastAPI) -> None:
     @app.get("/")
     async def root() -> dict[str, str]:
         return {
-            "service": "ECHO CHAMBER — Cortex",
+            "service": "ECHO CHAMBER - Cortex",
             "version": "0.1.0",
             "docs": "/docs",
         }
@@ -55,10 +52,10 @@ def _register_routes(app: FastAPI) -> None:
     @app.middleware("http")
     async def request_logging_middleware(
         request: Request,
-        call_next: AsyncGenerator,  # type: ignore[type-arg]
-    ) -> JSONResponse:
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
         start = time.monotonic()
-        response = await call_next(request)  # type: ignore[arg-type]
+        response = await call_next(request)
         duration_ms = (time.monotonic() - start) * 1000
 
         logger.info(
@@ -69,14 +66,7 @@ def _register_routes(app: FastAPI) -> None:
             duration_ms=round(duration_ms, 2),
         )
 
-        return response  # type: ignore[return-value]
-
-    # ── Add more routes as the project grows ────────────────────────
-    # @app.post("/signal")
-    # async def ingest_signal(signal: Signal) -> CortexDecision: ...
-    #
-    # @app.post("/onboard")
-    # async def onboard_client(url: str) -> ClientProfile: ...
+        return response
 
 
 app = create_app()

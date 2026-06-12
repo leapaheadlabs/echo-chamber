@@ -204,9 +204,8 @@
             <line number="50" hits="1" branch="false" />
             <line number="51" hits="2" branch="false" />
             <line number="52" hits="3" branch="false" />
-            <line number="53" hits="4" branch="false" />
+            <line number="53" hits="0" branch="false" />
             <line number="54" hits="0" branch="false" />
-            <line number="55" hits="0" branch="false" />
           </lines>
         </class>
       </classes>

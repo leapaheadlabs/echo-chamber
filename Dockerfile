@@ -49,7 +49,7 @@ COPY --from=builder --chmod=755 /usr/local/lib/python3.12/site-packages /usr/loc
 COPY --from=builder --chmod=755 /usr/local/bin /usr/local/bin
 
 # Copy application code (read+execute, no write — runtime is immutable)
-COPY --chown=echo:echo --chmod=555 src/ ./src/
+COPY --chmod=555 src/ ./src/
 
 USER echo
 

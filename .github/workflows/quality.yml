@@ -1,0 +1,63 @@
+name: Quality Gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sonarcloud:
+    name: SonarCloud
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: ${{ vars.SONAR_TOKEN != '' || secrets.SONAR_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+      - name: Install dependencies
+        run: poetry install --no-interaction --only main,dev
+      - name: Run tests for coverage
+        run: poetry run pytest --cov=src --cov-report=xml -v || true
+      - name: SonarCloud scan
+        uses: SonarSource/sonarcloud-github-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  trunk-check:
+    name: Trunk Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: ${{ vars.TRUNK_API_TOKEN != '' || secrets.TRUNK_API_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trunk Check
+        uses: trunk-io/trunk-action@v1
+        with:
+          check-mode: all
+        env:
+          TRUNK_API_TOKEN: ${{ secrets.TRUNK_API_TOKEN }}
+
+# ── Required Tokens to Enable ──────────────────────────────────────────────
+# Add these to repo Settings → Secrets and variables → Actions:
+#
+#   SEMGREP_APP_TOKEN   — https://semgrep.dev/orgs/-/settings/tokens
+#   GITLEAKS_LICENSE_KEY — https://gitleaks.io (community edition works without)
+#   PRISMA_API_KEY       — https://www.prismacloud.io (Checkov — community works without)
+#   SONAR_TOKEN          — https://sonarcloud.io → Security → Generate Token
+#   TRUNK_API_TOKEN      — https://app.trunk.io → Settings → API Token
+#
+# All scanners run in "soft-fail" mode — they report findings but don't block
+# merge until tokens are provided. Once a token is present, that scanner
+# will enforce its quality gate.

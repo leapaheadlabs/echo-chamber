@@ -1,0 +1,123 @@
+rules:
+  # ── Secrets & Credentials ──────────────────────────────────────────────
+  - id: no-hardcoded-secrets
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $X = "$STR"
+          - pattern: |
+              $X: str = "$STR"
+      - metavariable-regex:
+          metavariable: $STR
+          regex: >-
+            (?i)(api[_\s-]?key|secret|token|password|passwd|auth|credential)s?\s*[:=]\s*['"][^'"]{8,}['"]
+    message: |
+      Possible hardcoded secret detected. Use environment variables or
+      a secrets manager (e.g., pydantic-settings with SecretStr).
+    severity: ERROR
+    languages: [python]
+
+  # ── Dangerous Functions ────────────────────────────────────────────────
+  - id: no-eval-exec
+    patterns:
+      - pattern-either:
+          - pattern: exec(...)
+          - pattern: eval(...)
+          - pattern: compile(..., ..., 'exec')
+    message: "eval/exec/compile('exec') is forbidden. Use explicit safe alternatives."
+    severity: ERROR
+    languages: [python]
+
+  - id: no-os-system
+    patterns:
+      - pattern-either:
+          - pattern: os.system(...)
+          - pattern: os.popen(...)
+    message: "os.system/os.popen is dangerous. Use subprocess.run with shell=False."
+    severity: WARNING
+    languages: [python]
+
+  # ── Subprocess Safety ──────────────────────────────────────────────────
+  - id: subprocess-shell-true
+    patterns:
+      - pattern-either:
+          - pattern: subprocess.run(..., shell=True, ...)
+          - pattern: subprocess.call(..., shell=True, ...)
+          - pattern: subprocess.Popen(..., shell=True, ...)
+          - pattern: subprocess.check_output(..., shell=True, ...)
+    message: "shell=True is dangerous. Use shell=False with argument lists."
+    severity: ERROR
+    languages: [python]
+
+  # ── SQL Injection ──────────────────────────────────────────────────────
+  - id: no-sql-string-format
+    patterns:
+      - pattern-either:
+          - pattern: |
+              "...%s..." % $X
+          - pattern: f"...{$X}..."
+        pattern-inside: |
+          ...
+          await $CONN.execute(...)
+          ...
+    message: "Potential SQL injection via string formatting. Use parameterized queries."
+    severity: ERROR
+    languages: [python]
+
+  # ── PII / Sensitive Data Handling ──────────────────────────────────────
+  - id: no-pii-fields-in-logs
+    patterns:
+      - pattern-either:
+          - pattern: |
+              log(...$ARGS)
+          - pattern: |
+              logger.info(...$ARGS)
+          - pattern: |
+              logger.debug(...$ARGS)
+          - pattern: |
+              logger.error(...$ARGS)
+          - pattern: |
+              logger.warning(...$ARGS)
+      - metavariable-regex:
+          metavariable: $ARGS
+          regex: (?i)(email|phone|ssn|passport|credit_?card|address|dob|name)
+    message: "Possible PII in log output. Scrub sensitive fields before logging."
+    severity: WARNING
+    languages: [python]
+
+  # ── Unsafe Deserialization ─────────────────────────────────────────────
+  - id: no-pickle-loads
+    patterns:
+      - pattern-either:
+          - pattern: pickle.loads(...)
+          - pattern: pickle.load(...)
+          - pattern: yaml.load(...)
+    message: "Unsafe deserialization. Use safe loaders (yaml.safe_load) or avoid pickle."
+    severity: ERROR
+    languages: [python]
+
+  # ── Hardcoded URLs / Endpoints ─────────────────────────────────────────
+  - id: no-hardcoded-urls
+    patterns:
+      - pattern-either:
+          - pattern: |
+              "https://..."
+          - pattern: |
+              "http://..."
+    paths:
+      include:
+        - "src/echo_chamber/**/*.py"
+    message: "Hardcoded URL. Move to configuration (config.py or .env)."
+    severity: WARNING
+    languages: [python]
+
+  # ── Exception Handling ─────────────────────────────────────────────────
+  - id: no-bare-except
+    pattern: |
+      try:
+        ...
+      except:
+        ...
+    message: "Bare except: catches too much. Specify exception types to catch."
+    severity: WARNING
+    languages: [python]

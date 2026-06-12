@@ -29,7 +29,7 @@ We don't push scams. We push products that deserve to exist — and we make damn
 
 **Phase:** Conceptual / Playbook Development  
 **Owner:** [LeapAhead Labs](https://github.com/leapaheadlabs)  
-**Repo:** Will be transferred to `leapaheadlabs/echo-chamber`
+**Repo:** Live at [leapaheadlabs/echo-chamber](https://github.com/leapaheadlabs/echo-chamber)
 
 ## License
 

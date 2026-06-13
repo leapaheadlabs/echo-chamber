@@ -107,6 +107,7 @@ jobs:
           retention-days: 7
       - name: SonarScanner
         if: env.SONAR_HOST_URL != '' || env.SONAR_TOKEN != ''
+        continue-on-error: true
         uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}

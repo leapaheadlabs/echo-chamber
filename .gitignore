@@ -39,7 +39,7 @@ service-account.json
 htmlcov/
 .coverage
 .coverage.*
-coverage.xml
+# coverage.xml — committed for SonarQube analysis
 *.sarif
 
 # ── OS ────────────────────────────────────────────────────────────────

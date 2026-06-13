@@ -104,6 +104,14 @@ jobs:
           name: coverage-report
           path: coverage.xml
           retention-days: 7
+      - name: Commit coverage report
+        if: github.event_name == 'pull_request'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add coverage.xml
+          git diff --cached --quiet || git commit -m "chore: update coverage.xml [skip ci]"
+          git push || true
       - name: SonarScanner
         if: env.SONAR_HOST_URL != '' || env.SONAR_TOKEN != ''
         continue-on-error: true

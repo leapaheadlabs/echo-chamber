@@ -62,15 +62,25 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(s.db_user, "echo")
         self.assertEqual(s.db_name, "echo_chamber")
 
-    def test_config_db_password_is_required(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_config_db_password_is_required(self) -> None:
         """Settings raises when db_password is missing."""
+        import os
+
         from echo_chamber.config import Settings
 
-        monkeypatch.delenv("DB_PASSWORD", raising=False)
-        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-        with pytest.raises(ValueError, match="db_password"):
-            Settings(_env_file=None)
+        saved_db = os.environ.pop("DB_PASSWORD", None)
+        saved_openai = os.environ.pop("OPENAI_API_KEY", None)
+        saved_anthropic = os.environ.pop("ANTHROPIC_API_KEY", None)
+        try:
+            with pytest.raises(ValueError, match="db_password"):
+                Settings(_env_file=None)
+        finally:
+            if saved_db is not None:
+                os.environ["DB_PASSWORD"] = saved_db
+            if saved_openai is not None:
+                os.environ["OPENAI_API_KEY"] = saved_openai
+            if saved_anthropic is not None:
+                os.environ["ANTHROPIC_API_KEY"] = saved_anthropic
 
     def test_config_db_password_is_secret_str(self) -> None:
         """db_password is always stored as SecretStr (no plaintext exposure)."""
@@ -88,7 +98,7 @@ class TestConfig(unittest.TestCase):
 
         from echo_chamber.config import Settings
 
-        s = Settings(_env_file=None, db_password="pla" + "in_txt")  # type: ignore[arg-type]
+        s = Settings(_env_file=None, db_password="pla" + "in_txt")
         self.assertIsInstance(s.db_password, SecretStr)
 
     def test_config_database_url_property(self) -> None:

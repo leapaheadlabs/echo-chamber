@@ -1,0 +1,42 @@
+version: 1
+repo: "echo-chamber"
+detectedLanguages:
+  - "python"
+sonar:
+  projectKey: "echo-chamber"
+  sources:
+    - "src"
+  exclusions:
+    - "**/.git/**"
+    - "**/.scannerwork/**"
+    - "**/.trunk/**"
+    - "**/node_modules/**"
+    - "**/coverage/**"
+    - "**/target/**"
+    - "**/build/**"
+    - "**/dist/**"
+    - "**/.next/**"
+  coverage:
+    type: "coverage.py"
+    path: "coverage.xml"
+    command: "pytest --cov=src --cov-report=xml"
+    sonarProperty: "sonar.python.coverage.reportPaths"
+  coverageReports:
+    -
+      language: "python"
+      type: "coverage.py"
+      path: "coverage.xml"
+      command: "pytest --cov=src --cov-report=xml"
+      sonarProperty: "sonar.python.coverage.reportPaths"
+  requireServerGate: true
+toolchain:
+  python: "3.12"
+boundedChangeSet:
+  maxFiles: 40
+  maxLines: 5000
+parity:
+  mode: "exact"
+  repoOverrides:
+    trunkYaml: "ignored"
+    sonarProjectProperties: "coverage-hints-only"
+status: "draft"

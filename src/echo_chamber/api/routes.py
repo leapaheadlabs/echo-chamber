@@ -24,9 +24,13 @@ def create_app() -> FastAPI:
         redoc_url="/redoc" if settings.is_development else None,
     )
 
+    allowed_origins = (
+        ["http://localhost:3000", "http://localhost:8000"] if settings.is_development else []
+    )
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=allowed_origins,
         allow_methods=["*"],
         allow_headers=["*"],
     )

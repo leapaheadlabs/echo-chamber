@@ -1,6 +1,10 @@
+---
 name: CI
 
-on:
+permissions:
+  contents: read
+
+on:  # yamllint disable-line rule:truthy
   pull_request:
     branches: [main]
   push:
@@ -87,7 +91,12 @@ jobs:
         env:
           DB_PASSWORD: echo_test
           ENVIRONMENT: test
-        run: poetry run pytest --cov=src --cov-report=xml --cov-report=term-missing -v
+        run: >-
+          poetry run pytest
+          --cov=src
+          --cov-report=xml
+          --cov-report=term-missing
+          -v
       - name: Upload coverage XML
         if: always()
         uses: actions/upload-artifact@v4
@@ -114,10 +123,11 @@ jobs:
       - name: Install bandit
         run: pip install bandit[toml]
       - name: bandit scan
-        run: bandit -c pyproject.toml -r src/ -f sarif -o bandit.sarif
-      - name: Upload bandit SARIF
+        run: bandit -c pyproject.toml -r src/ -f json -o bandit.json
+      - name: Upload bandit results
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: actions/upload-artifact@v4
         with:
-          sarif_file: bandit.sarif
-          category: bandit
+          name: bandit-results
+          path: bandit.json
+          retention-days: 7

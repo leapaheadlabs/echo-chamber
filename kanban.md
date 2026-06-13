@@ -1,6 +1,6 @@
 # Kanban — ECHO CHAMBER
 
-<!-- Config: Last Task ID: 040 -->
+<!-- Config: Last Task ID: 043 -->
 
 ## ⚙️ Configuration
 
@@ -151,6 +151,52 @@ Initialize the full project skeleton. Everything else builds on this.
 - [ ] Environment/config management (pydantic-settings)
 - [ ] CI/CD: GitHub Actions for lint + test on PR
 - [ ] Pre-commit hooks: black, ruff, mypy
+
+### TASK-041 | Alembic migration framework setup
+
+**Priority**: High | **Category**: Infra | **Assigned**: @command
+**Created**: 2026-06-12
+**Tags**: #phase-1
+
+Schema is currently raw init.sql. Need proper migration framework before any schema changes.
+
+**Subtasks**:
+- [ ] Initialize Alembic with async PostgreSQL support
+- [ ] Create initial migration from existing init.sql schema
+- [ ] Add migration CI check (alembic upgrade --check)
+- [ ] Document migration workflow in Makefile
+
+---
+
+### TASK-042 | Structured logging implementation (structlog)
+
+**Priority**: High | **Category**: Infra | **Assigned**: @command
+**Created**: 2026-06-12
+**Tags**: #phase-1
+
+structlog is in dependencies but not wired into the app. Need structured JSON logging with trace IDs from day one.
+
+**Subtasks**:
+- [ ] Configure structlog processors (JSON, timestamps, trace IDs)
+- [ ] Wire into FastAPI request logging middleware
+- [ ] Add correlation_id to CortexState for request tracing
+- [ ] Ensure secrets are never logged (PII scrubbing processor)
+
+---
+
+### TASK-043 | Remove mypy dependency ignores for core libraries
+
+**Priority**: Medium | **Category**: Infra | **Assigned**: @command
+**Created**: 2026-06-12
+**Tags**: #phase-1
+
+Currently ignoring missing imports for langgraph, langchain, praw, discord, pgvector. This eliminates type safety on the most critical integration points.
+
+**Subtasks**:
+- [ ] Install type stubs for langgraph, langchain (if available)
+- [ ] Add targeted type: ignore comments only where stubs don't exist
+- [ ] Remove blanket ignore_missing_imports overrides
+- [ ] Verify mypy strict still passes
 
 ---
 

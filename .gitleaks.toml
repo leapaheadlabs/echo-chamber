@@ -27,9 +27,6 @@ useDefault = true
     '''EXAMPLE_API_KEY'''
   ]
 
-[rules.allowlist]
-  commits = []
-
 # Custom detection rules
 [[rules]]
   description = "OpenAI API key"

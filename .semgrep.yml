@@ -1,3 +1,4 @@
+---
 rules:
   # ── Secrets & Credentials ──────────────────────────────────────────────
   - id: no-hardcoded-secrets
@@ -24,7 +25,9 @@ rules:
           - pattern: exec(...)
           - pattern: eval(...)
           - pattern: compile(..., ..., 'exec')
-    message: "eval/exec/compile('exec') is forbidden. Use explicit safe alternatives."
+    message: >-
+      eval/exec/compile('exec') is forbidden.
+      Use explicit safe alternatives.
     severity: ERROR
     languages: [python]
 
@@ -33,7 +36,9 @@ rules:
       - pattern-either:
           - pattern: os.system(...)
           - pattern: os.popen(...)
-    message: "os.system/os.popen is dangerous. Use subprocess.run with shell=False."
+    message: >-
+      os.system/os.popen is dangerous.
+      Use subprocess.run with shell=False.
     severity: WARNING
     languages: [python]
 
@@ -60,7 +65,9 @@ rules:
           ...
           await $CONN.execute(...)
           ...
-    message: "Potential SQL injection via string formatting. Use parameterized queries."
+    message: >-
+      Potential SQL injection via string formatting.
+      Use parameterized queries.
     severity: ERROR
     languages: [python]
 
@@ -81,7 +88,9 @@ rules:
       - metavariable-regex:
           metavariable: $ARGS
           regex: (?i)(email|phone|ssn|passport|credit_?card|address|dob|name)
-    message: "Possible PII in log output. Scrub sensitive fields before logging."
+    message: >-
+      Possible PII in log output.
+      Scrub sensitive fields before logging.
     severity: WARNING
     languages: [python]
 
@@ -92,7 +101,9 @@ rules:
           - pattern: pickle.loads(...)
           - pattern: pickle.load(...)
           - pattern: yaml.load(...)
-    message: "Unsafe deserialization. Use safe loaders (yaml.safe_load) or avoid pickle."
+    message: >-
+      Unsafe deserialization.
+      Use safe loaders (yaml.safe_load) or avoid pickle.
     severity: ERROR
     languages: [python]
 
@@ -107,7 +118,9 @@ rules:
     paths:
       include:
         - "src/echo_chamber/**/*.py"
-    message: "Hardcoded URL. Move to configuration (config.py or .env)."
+    message: >-
+      Hardcoded URL.
+      Move to configuration (config.py or .env).
     severity: WARNING
     languages: [python]
 
@@ -118,6 +131,8 @@ rules:
         ...
       except:
         ...
-    message: "Bare except: catches too much. Specify exception types to catch."
+    message: >-
+      Bare except: catches too much.
+      Specify exception types to catch.
     severity: WARNING
     languages: [python]

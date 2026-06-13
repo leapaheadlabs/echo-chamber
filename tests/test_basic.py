@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pytest
 
-
 ## Package import
 
 
@@ -189,7 +188,7 @@ def test_config_secret_fields_not_in_repr() -> None:
 
 def test_signal_model_defaults() -> None:
     """Signal model validates with minimal fields."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     from echo_chamber.cortex.state import Signal
 
@@ -407,8 +406,7 @@ async def test_docs_endpoint_available_in_dev() -> None:
 
 def test_settings_singleton_is_settings_instance() -> None:
     """Module-level settings is a Settings instance."""
-    from echo_chamber.config import Settings
-
     import echo_chamber.config as cfg
+    from echo_chamber.config import Settings
 
     assert isinstance(cfg.settings, Settings)

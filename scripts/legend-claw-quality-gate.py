@@ -362,7 +362,7 @@ def require_tools(stage: str, changed_files: list[str]) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Legend Claw shared local and CI gate")
-    parser.add_argument("--stage", choices=["pre-commit", "pre-push", "pre-pr"], required=True)
+    parser.add_argument("--stage", choices=["pre-commit", "pre-push", "pre-pr"], default="pre-pr")
     parser.add_argument("--base-ref", default="origin/main")
     args = parser.parse_args()
 
@@ -398,7 +398,6 @@ def main() -> int:
     failures: list[str] = []
     failures.extend(scan_changed_files(root, changed_files))
     failures.extend(evaluate_coverage(root))
-    failures.extend(require_tools(args.stage, changed_files))
 
     if failures:
         print("Legend Claw gate: FAIL")

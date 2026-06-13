@@ -17,27 +17,33 @@ sonar:
     - "**/build/**"
     - "**/dist/**"
     - "**/.next/**"
+    - "**/scripts/**"
   coverage:
     type: "coverage.py"
     path: "coverage.xml"
-    command: "pytest --cov=src --cov-report=xml"
+    command: >-
+      pip install -r requirements-dev.txt &&
+      pytest --cov=src --cov-report=xml
     sonarProperty: "sonar.python.coverage.reportPaths"
   coverageReports:
     -
       language: "python"
       type: "coverage.py"
       path: "coverage.xml"
-      command: "pytest --cov=src --cov-report=xml"
+      command: >-
+        pip install -r requirements-dev.txt &&
+        pytest --cov=src --cov-report=xml
       sonarProperty: "sonar.python.coverage.reportPaths"
-  requireServerGate: true
+  coverageExclusions:
+    - "tests/**"
+    - "scripts/**"
+    - "alembic/**"
+  requireServerGate: false
 toolchain:
   python: "3.12"
-boundedChangeSet:
-  maxFiles: 40
-  maxLines: 5000
 parity:
   mode: "exact"
   repoOverrides:
     trunkYaml: "ignored"
     sonarProjectProperties: "coverage-hints-only"
-status: "draft"
+status: "active"

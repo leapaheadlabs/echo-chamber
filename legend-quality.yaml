@@ -2,11 +2,12 @@
 version: 1
 repo: "echo-chamber"
 detectedLanguages:
-  - "python"
+  - python
+
 sonar:
   projectKey: "echo-chamber"
   sources:
-    - "src"
+    - "."
   exclusions:
     - "**/.git/**"
     - "**/.scannerwork/**"
@@ -17,13 +18,16 @@ sonar:
     - "**/build/**"
     - "**/dist/**"
     - "**/.next/**"
-    - "**/scripts/**"
+    - ".github/**"
+    - "scripts/**"
+    - "alembic/**"
+    - "tests/**"
   coverage:
     type: "coverage.py"
     path: "coverage.xml"
     command: >-
-      pip install -r requirements-dev.txt &&
-      pytest --cov=src --cov-report=xml
+      python3 -m pip install -r requirements-dev.txt &&
+      python3 -m pytest --cov=src --cov-report=xml
     sonarProperty: "sonar.python.coverage.reportPaths"
   coverageReports:
     -
@@ -31,16 +35,18 @@ sonar:
       type: "coverage.py"
       path: "coverage.xml"
       command: >-
-        pip install -r requirements-dev.txt &&
-        pytest --cov=src --cov-report=xml
+        python3 -m pip install -r requirements-dev.txt &&
+        python3 -m pytest --cov=src --cov-report=xml
       sonarProperty: "sonar.python.coverage.reportPaths"
-  coverageExclusions:
-    - "tests/**"
-    - "scripts/**"
-    - "alembic/**"
-  requireServerGate: false
+
+  requireServerGate: true
 toolchain:
-  python: "3.12"
+  python:
+    version: "3.12+"
+    linter: "ruff"
+    formatter: "ruff"
+    typechecker: "mypy"
+
 parity:
   mode: "exact"
   repoOverrides:

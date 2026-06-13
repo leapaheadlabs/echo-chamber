@@ -362,7 +362,7 @@ def require_tools(stage: str, changed_files: list[str]) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Legend Claw shared local and CI gate")
-    parser.add_argument("--stage", choices=["pre-commit", "pre-push", "pre-pr"], required=True)
+    parser.add_argument("--stage", choices=["pre-commit", "pre-push", "pre-pr"], default="pre-pr")
     parser.add_argument("--base-ref", default="origin/main")
     args = parser.parse_args()
 

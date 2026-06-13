@@ -46,9 +46,9 @@ class TestSignalIngestAllPaths(unittest.TestCase):
     def test_ingest_with_all_optional_fields(self) -> None:
         from echo_chamber.cortex.graph import signal_ingest
 
-        result = signal_ingest(  # type: ignore[typeddict-item]
+        result = signal_ingest(
             {
-                "signal": {
+                "signal": {  # type: ignore[typeddict-item]
                     "source": "manual",
                     "content": "test",
                     "platform": "discord",

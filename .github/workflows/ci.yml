@@ -36,6 +36,18 @@ jobs:
       - name: ruff format (check)
         run: poetry run ruff format --check src/ tests/
 
+  repo-quality-gate:
+    name: enterprise-quality/repo-quality-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run repository quality gate
+        run: python scripts/legend-claw-quality-gate.py
+
   typecheck:
     name: Typecheck (mypy)
     runs-on: ubuntu-latest
@@ -97,13 +109,14 @@ jobs:
           --cov-report=xml
           --cov-report=term-missing
           -v
-      - name: Upload coverage XML
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage.xml
-          retention-days: 7
+      - name: Commit coverage report
+        if: github.event_name == 'pull_request'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f coverage.xml
+          git diff --cached --quiet || git commit -m "chore: update coverage.xml [skip ci]"
+          git push origin HEAD:${{ github.head_ref }} || true
 
   bandit:
     name: SAST (bandit)

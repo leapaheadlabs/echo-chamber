@@ -30,7 +30,7 @@ sonar:
       path: "coverage.xml"
       command: "pytest --cov=src --cov-report=xml"
       sonarProperty: "sonar.python.coverage.reportPaths"
-  requireServerGate: false
+  requireServerGate: true
 toolchain:
   python: "3.12"
 parity:
@@ -38,4 +38,4 @@ parity:
   repoOverrides:
     trunkYaml: "ignored"
     sonarProjectProperties: "coverage-hints-only"
-status: "draft"
+status: "active"

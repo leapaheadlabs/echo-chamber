@@ -18,8 +18,9 @@ class TestCortexGraph(unittest.TestCase):
     def test_signal_ingest_normalizes_dict(self) -> None:
         """signal_ingest converts dict to Signal model."""
         from echo_chamber.cortex.graph import signal_ingest
+        from echo_chamber.cortex.state import CortexState
 
-        state = {"signal": {"source": "manual", "content": "test signal"}}
+        state: CortexState = {"signal": {"source": "manual", "content": "test signal"}}  # type: ignore[typeddict-item]
         result = signal_ingest(state)
         self.assertIn("signal", result)
         self.assertEqual(result["signal"].source, "manual")
@@ -28,10 +29,10 @@ class TestCortexGraph(unittest.TestCase):
     def test_signal_ingest_passes_signal_model(self) -> None:
         """signal_ingest passes through Signal model unchanged."""
         from echo_chamber.cortex.graph import signal_ingest
-        from echo_chamber.cortex.state import Signal
+        from echo_chamber.cortex.state import CortexState, Signal
 
         signal = Signal(source="reddit", content="hello")
-        state = {"signal": signal}
+        state: CortexState = {"signal": signal}
         result = signal_ingest(state)
         self.assertEqual(result["signal"].source, "reddit")
 
@@ -39,78 +40,82 @@ class TestCortexGraph(unittest.TestCase):
         """signal_ingest returns error when signal is missing."""
         from echo_chamber.cortex.graph import signal_ingest
 
-        result = signal_ingest({})
+        result = signal_ingest({})  # type: ignore[arg-type]
         self.assertIn("errors", result)
 
     def test_signal_classify_threat(self) -> None:
         """Threat keywords classify as THREAT."""
         from echo_chamber.cortex.graph import signal_classify
-        from echo_chamber.cortex.state import Signal, SignalCategory
+        from echo_chamber.cortex.state import CortexState, Signal, SignalCategory
 
-        state = {"signal": Signal(source="test", content="legal threat against the product")}
+        state: CortexState = {
+            "signal": Signal(source="test", content="legal threat against the product")
+        }
         result = signal_classify(state)
         self.assertEqual(result["category"], SignalCategory.THREAT)
 
     def test_signal_classify_trend(self) -> None:
         """Trend keywords classify as TREND."""
         from echo_chamber.cortex.graph import signal_classify
-        from echo_chamber.cortex.state import Signal, SignalCategory
+        from echo_chamber.cortex.state import CortexState, Signal, SignalCategory
 
-        state = {"signal": Signal(source="test", content="this is trending in r/truckers")}
+        state: CortexState = {
+            "signal": Signal(source="test", content="this is trending in r/truckers")
+        }
         result = signal_classify(state)
         self.assertEqual(result["category"], SignalCategory.TREND)
 
     def test_signal_classify_noise(self) -> None:
         """Generic content classifies as NOISE."""
         from echo_chamber.cortex.graph import signal_classify
-        from echo_chamber.cortex.state import Signal, SignalCategory
+        from echo_chamber.cortex.state import CortexState, Signal, SignalCategory
 
-        state = {"signal": Signal(source="test", content="random unrelated content")}
+        state: CortexState = {"signal": Signal(source="test", content="random unrelated content")}
         result = signal_classify(state)
         self.assertEqual(result["category"], SignalCategory.NOISE)
 
     def test_signal_route_noise_goes_to_end(self) -> None:
         """NOISE signals route to END."""
         from echo_chamber.cortex.graph import signal_route
-        from echo_chamber.cortex.state import SignalCategory
+        from echo_chamber.cortex.state import CortexState, SignalCategory
 
-        state = {"category": SignalCategory.NOISE, "classification_confidence": 0.5}
+        state: CortexState = {"category": SignalCategory.NOISE, "classification_confidence": 0.5}
         result = signal_route(state)
         self.assertEqual(result, "end")
 
     def test_signal_route_threat_goes_to_escalate(self) -> None:
         """THREAT signals route to escalate."""
         from echo_chamber.cortex.graph import signal_route
-        from echo_chamber.cortex.state import SignalCategory
+        from echo_chamber.cortex.state import CortexState, SignalCategory
 
-        state = {"category": SignalCategory.THREAT, "classification_confidence": 0.8}
+        state: CortexState = {"category": SignalCategory.THREAT, "classification_confidence": 0.8}
         result = signal_route(state)
         self.assertEqual(result, "escalate")
 
     def test_signal_route_low_confidence_goes_to_escalate(self) -> None:
         """Low confidence signals route to escalate."""
         from echo_chamber.cortex.graph import signal_route
-        from echo_chamber.cortex.state import SignalCategory
+        from echo_chamber.cortex.state import CortexState, SignalCategory
 
-        state = {"category": SignalCategory.TREND, "classification_confidence": 0.4}
+        state: CortexState = {"category": SignalCategory.TREND, "classification_confidence": 0.4}
         result = signal_route(state)
         self.assertEqual(result, "escalate")
 
     def test_signal_route_trend_goes_to_decide(self) -> None:
         """TREND with good confidence routes to decide."""
         from echo_chamber.cortex.graph import signal_route
-        from echo_chamber.cortex.state import SignalCategory
+        from echo_chamber.cortex.state import CortexState, SignalCategory
 
-        state = {"category": SignalCategory.TREND, "classification_confidence": 0.8}
+        state: CortexState = {"category": SignalCategory.TREND, "classification_confidence": 0.8}
         result = signal_route(state)
         self.assertEqual(result, "decide")
 
     def test_cortex_decide_trend_produces_deploy(self) -> None:
         """TREND signal produces deploy decision."""
         from echo_chamber.cortex.graph import cortex_decide
-        from echo_chamber.cortex.state import Signal, SignalCategory
+        from echo_chamber.cortex.state import CortexState, Signal, SignalCategory
 
-        state = {
+        state: CortexState = {
             "signal": Signal(source="test", content="trucker IFTA complaints trending"),
             "category": SignalCategory.TREND,
             "classification_confidence": 0.8,
@@ -124,16 +129,16 @@ class TestCortexGraph(unittest.TestCase):
         """Missing signal/classification produces escalate decision."""
         from echo_chamber.cortex.graph import cortex_decide
 
-        result = cortex_decide({})
+        result = cortex_decide({})  # type: ignore[arg-type]
         self.assertEqual(result["decision"].action, "escalate")
         self.assertEqual(result["routing_target"], "escalate")
 
     def test_dispatch_logs_result(self) -> None:
         """dispatch produces dispatch_results."""
         from echo_chamber.cortex.graph import dispatch
-        from echo_chamber.cortex.state import AutonomyLevel, CortexDecision
+        from echo_chamber.cortex.state import AutonomyLevel, CortexDecision, CortexState
 
-        state = {
+        state: CortexState = {
             "decision": CortexDecision(
                 action="deploy",
                 ganglions=["reddit"],
@@ -148,9 +153,9 @@ class TestCortexGraph(unittest.TestCase):
     def test_escalate_produces_error_entry(self) -> None:
         """escalate adds escalation to errors for Commander visibility."""
         from echo_chamber.cortex.graph import escalate
-        from echo_chamber.cortex.state import CortexDecision, Signal, SignalCategory
+        from echo_chamber.cortex.state import CortexDecision, CortexState, Signal, SignalCategory
 
-        state = {
+        state: CortexState = {
             "signal": Signal(source="test", content="bad things happening"),
             "category": SignalCategory.THREAT,
             "decision": CortexDecision(

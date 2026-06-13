@@ -255,12 +255,12 @@ def health_check(state: CortexState) -> dict[str, Any]:
 # ── Graph Construction ──────────────────────────────────────────────────
 
 
-def build_cortex_graph() -> StateGraph:
+def build_cortex_graph():  # type: ignore[return]
     """Build and compile the Cortex StateGraph.
 
     Returns a compiled graph ready for invocation.
     """
-    graph = StateGraph(CortexState)
+    graph: StateGraph[CortexState, None, CortexState, CortexState] = StateGraph(CortexState)
 
     # Add nodes
     graph.add_node("signal_ingest", signal_ingest)

@@ -50,7 +50,7 @@ pytest = ">=8.3,<9.0"
 pytest-asyncio = ">=0.25,<1.0"
 pytest-cov = ">=6.1,<7.0"
 pytest-mock = ">=3.14,<4.0"
-httpx-mock = { version = ">=0.6,<1.0", extras = ["pytest"] }
+pytest-httpx = ">=0.35,<1.0"
 
 # ── Linting & Type Checking ─────────────────────────────────────────────
 ruff = ">=0.9,<1.0"

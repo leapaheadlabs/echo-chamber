@@ -1,4 +1,3 @@
----
 version: 1
 repo: "echo-chamber"
 detectedLanguages:
@@ -17,6 +16,7 @@ sonar:
     - "**/build/**"
     - "**/dist/**"
     - "**/.next/**"
+    - "**/scripts/**"
   coverage:
     type: "coverage.py"
     path: "coverage.xml"
@@ -32,9 +32,6 @@ sonar:
   requireServerGate: false
 toolchain:
   python: "3.12"
-boundedChangeSet:
-  maxFiles: 40
-  maxLines: 5000
 parity:
   mode: "exact"
   repoOverrides:

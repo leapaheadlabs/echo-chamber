@@ -133,25 +133,6 @@ Multi-region PostgreSQL read replicas, Cortex failover, LLM provider auto-switch
 
 ## 📋 To Do
 
-### TASK-005 | Project skeleton — LangGraph scaffold, FastAPI, PostgreSQL, Docker
-
-**Priority**: Critical | **Category**: Infra | **Assigned**: @command
-**Created**: 2026-06-12
-**Tags**: #phase-1 #critical-path
-
-Initialize the full project skeleton. Everything else builds on this.
-
-**Subtasks**:
-- [ ] Initialize Python project with Poetry (LangGraph + LangChain + FastAPI + PRAW + discord.py)
-- [ ] Docker Compose: Cortex service, PostgreSQL 16, pgvector, Redis
-- [ ] FastAPI skeleton with health endpoint, OpenAPI docs
-- [ ] PostgreSQL schema: signals, deployments, accounts, clients, episodic_memory, semantic_memory
-- [ ] pgvector extension setup + embedding table
-- [ ] LangGraph StateGraph scaffold (empty graph, test invoke)
-- [ ] Environment/config management (pydantic-settings)
-- [ ] CI/CD: GitHub Actions for lint + test on PR
-- [ ] Pre-commit hooks: black, ruff, mypy
-
 ### TASK-041 | Alembic migration framework setup
 
 **Priority**: High | **Category**: Infra | **Assigned**: @command
@@ -647,6 +628,19 @@ Multi-platform orchestration: Cortex plans cross-ganglion campaigns, coordinates
 
 ## 🚀 In Progress
 
+### Sprint 0 — Foundation (Jun 13-20)
+
+**Goal:** Cortex graph invoke works end-to-end. Alembic migrations protect schema.
+
+| Task | Owner | Status | Notes |
+|------|-------|--------|-------|
+| TASK-006 | @command | Starting | Critical path — Cortex StateGraph |
+| TASK-041 | @command | Starting | Unblocks all schema work |
+| TASK-022 | @larry | In Progress | Risk managed separately. Not blocking code delivery. |
+
+**Risks:**
+- Ghost account warming (TASK-022): 90-day requirement. @larry managing. Does not block Sprint 0 deliverables.
+
 ---
 
 ## 👀 Review
@@ -654,6 +648,19 @@ Multi-platform orchestration: Cortex plans cross-ganglion campaigns, coordinates
 ---
 
 ## ✅ Done
+
+### TASK-005 | Project skeleton — LangGraph scaffold, FastAPI, PostgreSQL, Docker
+
+**Priority**: Critical | **Category**: Infra | **Assigned**: @command
+**Created**: 2026-06-12 | **Started**: 2026-06-12 | **Finished**: 2026-06-13
+**Tags**: #phase-1 #critical-path
+
+Initialize the full project skeleton. Everything else builds on this.
+
+**Result**:
+✅ PR #5 merged. 22 files, full CI/CD pipeline, zero scanner findings.
+
+---
 
 ### TASK-001 | BRAIN.md — Full architecture manifesto
 

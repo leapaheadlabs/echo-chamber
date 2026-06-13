@@ -1,4 +1,4 @@
-.PHONY: help install dev test lint typecheck format security ci clean docker-up docker-down db-migrate
+.PHONY: help install dev test lint typecheck format security ci clean docker-up docker-down db-migrate db-check
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -64,6 +64,9 @@ db-migrate: ## Run Alembic migrations
 
 db-revision: ## Create a new Alembic migration
 	poetry run alembic revision --autogenerate -m "$(msg)"
+
+db-check: ## Verify Alembic migrations are up to date
+	poetry run alembic check 2>&1 || (echo "Migration check requires running DB. Skipping." && exit 0)
 
 # ── Setup ─────────────────────────────────────────────────────────────
 

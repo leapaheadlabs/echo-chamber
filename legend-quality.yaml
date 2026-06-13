@@ -21,15 +21,23 @@ sonar:
   coverage:
     type: "coverage.py"
     path: "coverage.xml"
-    command: "pytest --cov=src --cov-report=xml"
+    command: >-
+      pip install -e '.[dev]' &&
+      pytest --cov=src --cov-report=xml
     sonarProperty: "sonar.python.coverage.reportPaths"
   coverageReports:
     -
       language: "python"
       type: "coverage.py"
       path: "coverage.xml"
-      command: "pytest --cov=src --cov-report=xml"
+      command: >-
+        pip install -e '.[dev]' &&
+        pytest --cov=src --cov-report=xml
       sonarProperty: "sonar.python.coverage.reportPaths"
+  coverageExclusions:
+    - "tests/**"
+    - "scripts/**"
+    - "alembic/**"
   requireServerGate: true
 toolchain:
   python: "3.12"

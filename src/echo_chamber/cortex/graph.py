@@ -255,7 +255,7 @@ def health_check(state: CortexState) -> dict[str, Any]:
 # ── Graph Construction ──────────────────────────────────────────────────
 
 
-def build_cortex_graph():  # type: ignore[return]
+def build_cortex_graph() -> Any:
     """Build and compile the Cortex StateGraph.
 
     Returns a compiled graph ready for invocation.

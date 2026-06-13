@@ -40,7 +40,7 @@ class TestCortexGraph(unittest.TestCase):
         """signal_ingest returns error when signal is missing."""
         from echo_chamber.cortex.graph import signal_ingest
 
-        result = signal_ingest({})  # type: ignore[arg-type]
+        result = signal_ingest({})
         self.assertIn("errors", result)
 
     def test_signal_classify_threat(self) -> None:
@@ -129,7 +129,7 @@ class TestCortexGraph(unittest.TestCase):
         """Missing signal/classification produces escalate decision."""
         from echo_chamber.cortex.graph import cortex_decide
 
-        result = cortex_decide({})  # type: ignore[arg-type]
+        result = cortex_decide({})
         self.assertEqual(result["decision"].action, "escalate")
         self.assertEqual(result["routing_target"], "escalate")
 
@@ -168,6 +168,103 @@ class TestCortexGraph(unittest.TestCase):
         self.assertIn("errors", result)
         self.assertTrue(any("ESCALATION" in e for e in result["errors"]))
 
+    def test_escalate_without_decision(self) -> None:
+        """escalate handles missing decision gracefully."""
+        from echo_chamber.cortex.graph import escalate
+        from echo_chamber.cortex.state import CortexState, Signal, SignalCategory
+
+        state: CortexState = {
+            "signal": Signal(source="test", content="something bad"),
+            "category": SignalCategory.THREAT,
+        }
+        result = escalate(state)
+        self.assertIn("errors", result)
+
+    def test_learn_returns_empty(self) -> None:
+        """learn node returns empty dict (stub)."""
+        from echo_chamber.cortex.graph import learn
+        from echo_chamber.cortex.state import CortexState
+
+        state: CortexState = {"dispatch_results": {"abc": {"status": "dispatched"}}}
+        result = learn(state)
+        self.assertEqual(result, {})
+
+    def test_health_check_returns_empty_issues(self) -> None:
+        """health_check node returns empty issues (stub)."""
+        from echo_chamber.cortex.graph import health_check
+
+        result = health_check({})  # type: ignore[arg-type]
+        self.assertEqual(result["health_issues"], [])
+
+    def test_signal_ingest_rejects_invalid_dict(self) -> None:
+        """signal_ingest returns error for invalid signal dict."""
+        from echo_chamber.cortex.graph import signal_ingest
+
+        result = signal_ingest({"signal": {"bad_field": True}})
+        self.assertIn("errors", result)
+
+    def test_signal_ingest_rejects_unexpected_type(self) -> None:
+        """signal_ingest returns error for non-dict/non-Signal input."""
+        from echo_chamber.cortex.graph import signal_ingest
+
+        result = signal_ingest({"signal": 12345})
+        self.assertIn("errors", result)
+
+    def test_signal_classify_mention(self) -> None:
+        """Mention keywords classify as MENTION."""
+        from echo_chamber.cortex.graph import signal_classify
+        from echo_chamber.cortex.state import CortexState, Signal, SignalCategory
+
+        state: CortexState = {
+            "signal": Signal(source="test", content="people are talking about this")
+        }
+        result = signal_classify(state)
+        self.assertEqual(result["category"], SignalCategory.MENTION)
+
+    def test_signal_classify_opportunity(self) -> None:
+        """Opportunity keywords classify as OPPORTUNITY."""
+        from echo_chamber.cortex.graph import signal_classify
+        from echo_chamber.cortex.state import CortexState, Signal, SignalCategory
+
+        state: CortexState = {
+            "signal": Signal(source="test", content="there is a gap in the market")
+        }
+        result = signal_classify(state)
+        self.assertEqual(result["category"], SignalCategory.OPPORTUNITY)
+
+    def test_cortex_decide_opportunity_produces_deploy(self) -> None:
+        """OPPORTUNITY signal produces deploy decision."""
+        from echo_chamber.cortex.graph import cortex_decide
+        from echo_chamber.cortex.state import CortexState, Signal, SignalCategory
+
+        state: CortexState = {
+            "signal": Signal(source="test", content="untapped market opportunity"),
+            "category": SignalCategory.OPPORTUNITY,
+            "classification_confidence": 0.8,
+        }
+        result = cortex_decide(state)
+        self.assertEqual(result["decision"].action, "deploy")
+
+    def test_cortex_decide_mention_produces_deploy(self) -> None:
+        """MENTION signal produces deploy decision."""
+        from echo_chamber.cortex.graph import cortex_decide
+        from echo_chamber.cortex.state import CortexState, Signal, SignalCategory
+
+        state: CortexState = {
+            "signal": Signal(source="test", content="people mentioning the product"),
+            "category": SignalCategory.MENTION,
+            "classification_confidence": 0.7,
+        }
+        result = cortex_decide(state)
+        self.assertEqual(result["decision"].action, "deploy")
+
+    def test_dispatch_no_decision_returns_error(self) -> None:
+        """dispatch returns error when decision is missing."""
+        from echo_chamber.cortex.graph import dispatch
+
+        result = dispatch({})  # type: ignore[arg-type]
+        self.assertIn("errors", result)
+
 
 class TestCortexGraphInvocation(unittest.TestCase):
     """Full graph invocation tests — end-to-end pipeline."""
@@ -203,3 +300,26 @@ class TestCortexGraphInvocation(unittest.TestCase):
         )
         self.assertEqual(result.get("category").value, "threat")
         self.assertIn("errors", result)
+
+    def test_full_pipeline_opportunity_to_dispatch(self) -> None:
+        """OPPORTUNITY signal flows through: ingest → classify → decide → dispatch → learn."""
+        from echo_chamber.cortex.graph import build_cortex_graph
+
+        graph = build_cortex_graph()
+        result = graph.invoke(
+            {"signal": {"source": "manual", "content": "there is a huge opportunity here"}}
+        )
+        self.assertIn("decision", result)
+        self.assertEqual(result["decision"].action, "deploy")
+        self.assertIn("dispatch_results", result)
+
+    def test_full_pipeline_mention_to_dispatch(self) -> None:
+        """MENTION signal flows through: ingest → classify → decide → dispatch → learn."""
+        from echo_chamber.cortex.graph import build_cortex_graph
+
+        graph = build_cortex_graph()
+        result = graph.invoke(
+            {"signal": {"source": "manual", "content": "people are talking about this product"}}
+        )
+        self.assertIn("decision", result)
+        self.assertEqual(result["decision"].action, "deploy")

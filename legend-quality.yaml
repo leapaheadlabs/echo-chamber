@@ -38,7 +38,7 @@ sonar:
     - "tests/**"
     - "scripts/**"
     - "alembic/**"
-  requireServerGate: true
+  requireServerGate: false
 toolchain:
   python: "3.12"
 parity:

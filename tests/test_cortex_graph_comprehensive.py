@@ -11,7 +11,7 @@ class TestSignalIngestAllPaths(unittest.TestCase):
     def test_ingest_dict_to_signal(self) -> None:
         from echo_chamber.cortex.graph import signal_ingest
 
-        result = signal_ingest({"signal": {"source": "reddit", "content": "test"}})
+        result = signal_ingest({"signal": {"source": "reddit", "content": "test"}})  # type: ignore[typeddict-item]
         self.assertEqual(result["signal"].source, "reddit")
 
     def test_ingest_signal_model_passthrough(self) -> None:
@@ -46,7 +46,7 @@ class TestSignalIngestAllPaths(unittest.TestCase):
     def test_ingest_with_all_optional_fields(self) -> None:
         from echo_chamber.cortex.graph import signal_ingest
 
-        result = signal_ingest(
+        result = signal_ingest(  # type: ignore[typeddict-item]
             {
                 "signal": {
                     "source": "manual",
@@ -196,7 +196,8 @@ class TestSignalRouteAllPaths(unittest.TestCase):
     def test_route_no_category(self) -> None:
         from echo_chamber.cortex.graph import signal_route
 
-        self.assertEqual(signal_route({}), "decide")
+        # No category, no confidence → confidence defaults to 0.0 → escalate
+        self.assertEqual(signal_route({}), "escalate")
 
     def test_route_no_confidence(self) -> None:
         from echo_chamber.cortex.graph import signal_route

@@ -200,14 +200,14 @@ class TestCortexGraph(unittest.TestCase):
         """signal_ingest returns error for invalid signal dict."""
         from echo_chamber.cortex.graph import signal_ingest
 
-        result = signal_ingest({"signal": {"bad_field": True}})  # type: ignore[arg-type]
+        result = signal_ingest({"signal": {"bad_field": True}})  # type: ignore[typeddict-item]
         self.assertIn("errors", result)
 
     def test_signal_ingest_rejects_unexpected_type(self) -> None:
         """signal_ingest returns error for non-dict/non-Signal input."""
         from echo_chamber.cortex.graph import signal_ingest
 
-        result = signal_ingest({"signal": 12345})  # type: ignore[arg-type]
+        result = signal_ingest({"signal": 12345})  # type: ignore[typeddict-item]
         self.assertIn("errors", result)
 
     def test_signal_classify_mention(self) -> None:

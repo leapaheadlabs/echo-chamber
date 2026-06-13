@@ -22,7 +22,7 @@ sonar:
     type: "coverage.py"
     path: "coverage.xml"
     command: >-
-      pip install -e '.[dev]' &&
+      pip install -r requirements-dev.txt &&
       pytest --cov=src --cov-report=xml
     sonarProperty: "sonar.python.coverage.reportPaths"
   coverageReports:
@@ -31,7 +31,7 @@ sonar:
       type: "coverage.py"
       path: "coverage.xml"
       command: >-
-        pip install -e '.[dev]' &&
+        pip install -r requirements-dev.txt &&
         pytest --cov=src --cov-report=xml
       sonarProperty: "sonar.python.coverage.reportPaths"
   coverageExclusions:

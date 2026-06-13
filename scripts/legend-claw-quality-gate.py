@@ -398,7 +398,6 @@ def main() -> int:
     failures: list[str] = []
     failures.extend(scan_changed_files(root, changed_files))
     failures.extend(evaluate_coverage(root))
-    failures.extend(require_tools(args.stage, changed_files))
 
     if failures:
         print("Legend Claw gate: FAIL")

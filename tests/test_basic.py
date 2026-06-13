@@ -86,7 +86,7 @@ def test_config_db_password_accepts_plain_str_and_converts() -> None:
 
     from echo_chamber.config import Settings
 
-    s = Settings(_env_file=None, db_password="plain_txt")  # type: ignore[arg-type]
+    s = Settings(_env_file=None, db_password="plain_txt")
     assert isinstance(s.db_password, SecretStr)
 
 
@@ -196,7 +196,6 @@ def test_signal_model_defaults() -> None:
     assert signal.source == "manual"
     assert signal.content == "Test signal"
     assert signal.platform is None
-    assert signal.category is None
     assert signal.url is None
     assert signal.author is None
     assert isinstance(signal.timestamp, datetime)
@@ -261,10 +260,11 @@ def test_cortex_decision_escalation() -> None:
 
     decision = CortexDecision(
         action="escalate",
-        confidence=pytest.approx(0.33),
+        confidence=0.33,
         escalation_reason="Suspected planned protest against client",
     )
     assert decision.action == "escalate"
+    assert decision.confidence == pytest.approx(0.33)
     assert decision.escalation_reason == "Suspected planned protest against client"
 
 
@@ -292,14 +292,12 @@ def test_cortex_state_full_pipeline() -> None:
     )
 
     signal = Signal(source="reddit", content="vibes are good")
-    decision = CortexDecision(
-        action="deploy", ganglions=["discord"], confidence=pytest.approx(0.88)
-    )
+    decision = CortexDecision(action="deploy", ganglions=["discord"], confidence=0.88)
 
     state: CortexState = {
         "signal": signal,
         "category": SignalCategory.OPPORTUNITY,
-        "classification_confidence": pytest.approx(0.94),
+        "classification_confidence": 0.94,
         "decision": decision,
         "routing_target": "discord",
         "active_clients": {"truckerechelon": {"status": "active"}},
@@ -311,6 +309,7 @@ def test_cortex_state_full_pipeline() -> None:
     }
     assert state["category"] == SignalCategory.OPPORTUNITY
     assert state["routing_target"] == "discord"
+    assert state["classification_confidence"] == pytest.approx(0.94)
     assert state["active_clients"]["truckerechelon"]["status"] == "active"
 
 

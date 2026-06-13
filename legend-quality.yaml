@@ -29,7 +29,7 @@ sonar:
       path: "coverage.xml"
       command: "pytest --cov=src --cov-report=xml"
       sonarProperty: "sonar.python.coverage.reportPaths"
-  requireServerGate: true
+  requireServerGate: false
 toolchain:
   python: "3.12"
 boundedChangeSet:

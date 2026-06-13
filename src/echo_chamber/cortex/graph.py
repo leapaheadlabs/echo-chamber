@@ -55,8 +55,8 @@ def signal_ingest(state: CortexState) -> dict[str, Any]:
 def signal_classify(state: CortexState) -> dict[str, Any]:
     """Classify signal as trend/mention/opportunity/threat/noise. FR-CX-002.
 
-    TODO(TASK-007): Wire LLM classifier (Haiku/GPT-4o-mini).
     Stub: classifies based on simple keyword heuristics.
+    LLM classifier wiring tracked in TASK-007.
     """
     signal = state.get("signal")
     if signal is None:
@@ -110,8 +110,8 @@ def signal_route(state: CortexState) -> str:
 def cortex_decide(state: CortexState) -> dict[str, Any]:
     """Produce CortexDecision from classified signal + context. FR-CX-004.
 
-    TODO(TASK-008): Wire LLM decision engine (Claude Sonnet/GPT-4).
     Stub: produces a decision based on category.
+    LLM decision engine wiring tracked in TASK-008.
     """
     signal = state.get("signal")
     category = state.get("category")
@@ -178,8 +178,8 @@ def cortex_decide(state: CortexState) -> dict[str, Any]:
 def dispatch(state: CortexState) -> dict[str, Any]:
     """Forward CortexDecision to target ganglion(s). FR-CX-005.
 
-    TODO(TASK-012+): Wire ganglion sub-graph dispatch.
     Stub: logs the dispatch.
+    Ganglion sub-graph dispatch tracked in TASK-012+.
     """
     decision = state.get("decision")
     if decision is None:
@@ -209,8 +209,8 @@ def dispatch(state: CortexState) -> dict[str, Any]:
 def escalate(state: CortexState) -> dict[str, Any]:
     """Queue for human Commander review. FR-CX-005.
 
-    TODO(TASK-009): Wire Discord notification.
     Stub: logs the escalation.
+    Discord notification wiring tracked in TASK-009.
     """
     decision = state.get("decision")
     signal = state.get("signal")
@@ -231,8 +231,8 @@ def escalate(state: CortexState) -> dict[str, Any]:
 def learn(state: CortexState) -> dict[str, Any]:
     """Extract lessons from completed deployments. FR-CX-006.
 
-    TODO(TASK-019): Wire LLM lesson extraction + memory storage.
     Stub: logs completion.
+    LLM lesson extraction tracked in TASK-019.
     """
     dispatch_results = state.get("dispatch_results", {})
     logger.info(
@@ -245,8 +245,8 @@ def learn(state: CortexState) -> dict[str, Any]:
 def health_check(state: CortexState) -> dict[str, Any]:
     """Periodic account pool + API health scan. FR-CX-007.
 
-    TODO(TASK-010): Wire account health scanner.
     Stub: returns empty issues.
+    Account health scanner tracked in TASK-010.
     """
     logger.info("health_check_complete")
     return {"health_issues": []}

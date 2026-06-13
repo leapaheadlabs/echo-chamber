@@ -10,11 +10,11 @@ import os
 import re
 import shutil
 import subprocess
-import xml.etree.ElementTree as ET
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from pathlib import Path
 from typing import Any
 
+from defusedxml.ElementTree import parse as _xml_parse
 
 DEFAULT_CONTRACTS: dict[str, Any] = {
     "version": 1,
@@ -24,9 +24,29 @@ DEFAULT_CONTRACTS: dict[str, Any] = {
 }
 
 TEXT_EXTENSIONS = {
-    ".ts", ".tsx", ".js", ".jsx", ".py", ".go", ".rs", ".java", ".kt",
-    ".cpp", ".cc", ".cxx", ".c", ".h", ".hpp", ".dart", ".json", ".yaml",
-    ".yml", ".toml", ".sh", ".env", ".sql",
+    ".ts",
+    ".tsx",
+    ".js",
+    ".jsx",
+    ".py",
+    ".go",
+    ".rs",
+    ".java",
+    ".kt",
+    ".cpp",
+    ".cc",
+    ".cxx",
+    ".c",
+    ".h",
+    ".hpp",
+    ".dart",
+    ".json",
+    ".yaml",
+    ".yml",
+    ".toml",
+    ".sh",
+    ".env",
+    ".sql",
 }
 IAC_PATTERNS = ("*.tf", "*.tfvars", "*.hcl", "*.yaml", "*.yml")
 TYPE_ESCAPE_RE = re.compile(r"as any|@ts-ignore|@ts-nocheck|@ts-expect-error")
@@ -51,7 +71,10 @@ LANGUAGE_PATTERNS = {
     ".tsx": [re.compile(r"console\.(log|debug|warn|info)|debugger")],
     ".js": [re.compile(r"console\.(log|debug|warn|info)|debugger")],
     ".jsx": [re.compile(r"console\.(log|debug|warn|info)|debugger")],
-    ".py": [re.compile(r"^\s*print\(", re.MULTILINE), re.compile(r"import pdb|breakpoint\(\)|pdb\.set_trace")],
+    ".py": [
+        re.compile(r"^\s*print\(", re.MULTILINE),
+        re.compile(r"import pdb|breakpoint\(\)|pdb\.set_trace"),
+    ],
     ".go": [re.compile(r"fmt\.Print|log\.Print|runtime\.Breakpoint")],
     ".rs": [re.compile(r"println!\(|dbg!\(|eprintln!\(")],
     ".java": [re.compile(r"System\.out\.print|System\.err\.print|\.printStackTrace\(\)")],
@@ -124,7 +147,14 @@ def run_shell(
     timeout: int = 300,
     env: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(["bash", "-lc", command], cwd=cwd, capture_output=True, text=True, timeout=timeout, env=env)
+    return subprocess.run(
+        ["/bin/bash", "-lc", command],
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+        env=env,
+    )
 
 
 @contextmanager
@@ -147,19 +177,15 @@ def canonical_trunk_config(root: Path):
         yield trunk_cfg
     finally:
         if not wrote_config:
-            return
-        if file_existed and original is not None:
+            pass
+        elif file_existed and original is not None:
             trunk_cfg.write_bytes(original)
         else:
-            try:
+            with suppress(FileNotFoundError):
                 trunk_cfg.unlink()
-            except FileNotFoundError:
-                pass
             if not dir_existed:
-                try:
+                with suppress(OSError):
                     trunk_dir.rmdir()
-                except OSError:
-                    pass
 
 
 def load_trunk_payload(raw_output: str) -> dict[str, Any]:
@@ -184,7 +210,12 @@ def run_trunk_check(root: Path, trunk_files: list[str]) -> list[str]:
     if not trunk_files:
         return []
 
-    env = {**os.environ, "CI": "true", "TRUNK_TOKEN": "", "NO_COLOR": "1"}
+    env = {
+        **os.environ,
+        "CI": "true",
+        "TRUNK_TOKEN": os.environ.get("TRUNK_TOKEN", ""),
+        "NO_COLOR": "1",
+    }
 
     with canonical_trunk_config(root):
         result = run(
@@ -217,7 +248,9 @@ def run_trunk_check(root: Path, trunk_files: list[str]) -> list[str]:
         line = int(item.get("line", 0) or 0)
         if line:
             location = f"{location}:{line}"
-        summaries.append(f"{location} [{item.get('linter', '?')}] {item.get('message', '').strip()}")
+        summaries.append(
+            f"{location} [{item.get('linter', '?')}] {item.get('message', '').strip()}"
+        )
     if len(issues) > 20:
         summaries.append(f"... {len(issues) - 20} more trunk issue(s)")
 
@@ -311,7 +344,7 @@ def parse_go_coverage(path: Path) -> float | None:
 
 
 def parse_xml_coverage(path: Path) -> float | None:
-    root = ET.parse(path).getroot()
+    root = _xml_parse(path).getroot()
 
     line_rate = root.attrib.get("line-rate")
     if line_rate is not None:
@@ -404,29 +437,44 @@ def resolve_base_ref_for_git(root: Path, base_ref: str | None) -> str:
         if branch_name != resolved_base:
             run(["git", "fetch", "origin", branch_name, "--depth=100"], cwd=root)
         return resolved_base
-    if all(ch in "0123456789abcdef" for ch in resolved_base.lower()) and 7 <= len(resolved_base) <= 40:
+    if (
+        all(ch in "0123456789abcdef" for ch in resolved_base.lower())
+        and 7 <= len(resolved_base) <= 40
+    ):
         return resolved_base
     run(["git", "fetch", "origin", resolved_base, "--depth=100"], cwd=root)
     return f"origin/{resolved_base}"
 
 
-def get_changed_files(root: Path, stage: str, base_ref: str | None, base_sha: str | None, head_sha: str | None) -> list[str]:
+def get_changed_files(
+    root: Path, stage: str, base_ref: str | None, base_sha: str | None, head_sha: str | None
+) -> list[str]:
     if stage == "pre-commit":
         result = run(["git", "diff", "--cached", "--name-only", "--diff-filter=ACMRT"], cwd=root)
     elif base_sha and head_sha:
-        result = run(["git", "diff", "--name-only", "--diff-filter=ACMRT", base_sha, head_sha], cwd=root)
+        result = run(
+            ["git", "diff", "--name-only", "--diff-filter=ACMRT", base_sha, head_sha], cwd=root
+        )
     else:
         resolved_base = resolve_base_ref_for_git(root, base_ref)
-        result = run(["git", "diff", "--name-only", "--diff-filter=ACMRT", f"{resolved_base}...HEAD"], cwd=root)
+        result = run(
+            ["git", "diff", "--name-only", "--diff-filter=ACMRT", f"{resolved_base}...HEAD"],
+            cwd=root,
+        )
         if result.returncode not in (0, 1) and "no merge base" in result.stderr.lower():
-            result = run(["git", "diff", "--name-only", "--diff-filter=ACMRT", resolved_base, "HEAD"], cwd=root)
+            result = run(
+                ["git", "diff", "--name-only", "--diff-filter=ACMRT", resolved_base, "HEAD"],
+                cwd=root,
+            )
 
     if result.returncode not in (0, 1):
         raise RuntimeError(result.stderr.strip() or "Failed to compute changed files")
     return [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
 
-def get_shortstat(root: Path, stage: str, base_ref: str | None, base_sha: str | None, head_sha: str | None) -> str:
+def get_shortstat(
+    root: Path, stage: str, base_ref: str | None, base_sha: str | None, head_sha: str | None
+) -> str:
     if stage == "pre-commit":
         result = run(["git", "diff", "--cached", "--shortstat"], cwd=root)
     elif base_sha and head_sha:
@@ -457,7 +505,11 @@ def parse_shortstat(shortstat: str) -> tuple[int, int]:
 
 
 def is_text_file(path: Path) -> bool:
-    return path.suffix.lower() in TEXT_EXTENSIONS or path.name in {"Dockerfile", ".env", ".env.example"}
+    return path.suffix.lower() in TEXT_EXTENSIONS or path.name in {
+        "Dockerfile",
+        ".env",
+        ".env.example",
+    }
 
 
 def scan_changed_files(root: Path, changed_files: list[str]) -> list[str]:
@@ -503,7 +555,9 @@ def path_matches(patterns: list[str], path: str) -> bool:
     return any(fnmatch.fnmatch(path, pattern) for pattern in patterns)
 
 
-def run_contract_commands(root: Path, contracts: dict[str, Any], changed_files: list[str]) -> list[str]:
+def run_contract_commands(
+    root: Path, contracts: dict[str, Any], changed_files: list[str]
+) -> list[str]:
     failures: list[str] = []
 
     for item in contracts.get("requiredCommands", []):
@@ -517,7 +571,9 @@ def run_contract_commands(root: Path, contracts: dict[str, Any], changed_files: 
             continue
         result = run_shell(command, cwd=root)
         if result.returncode != 0:
-            failures.append(f"{name}: command failed\n{(result.stdout + result.stderr).strip()[:2000]}")
+            failures.append(
+                f"{name}: command failed\n{(result.stdout + result.stderr).strip()[:2000]}"
+            )
 
     for item in contracts.get("pathContracts", []):
         when_paths = item.get("whenPaths", [])
@@ -526,11 +582,15 @@ def run_contract_commands(root: Path, contracts: dict[str, Any], changed_files: 
         name = item.get("name", "unnamed-path-contract")
         command = (item.get("run") or "").strip()
         if not command:
-            failures.append(f"{name}: matching path requires an executable contract but run is blank")
+            failures.append(
+                f"{name}: matching path requires an executable contract but run is blank"
+            )
             continue
         result = run_shell(command, cwd=root)
         if result.returncode != 0:
-            failures.append(f"{name}: command failed\n{(result.stdout + result.stderr).strip()[:2000]}")
+            failures.append(
+                f"{name}: command failed\n{(result.stdout + result.stderr).strip()[:2000]}"
+            )
 
     return failures
 
@@ -576,9 +636,13 @@ def run_external_scanners(root: Path, stage: str, changed_files: list[str]) -> l
         timeout=180,
     )
     if gitleaks.returncode not in (0, 1):
-        failures.append(f"gitleaks failed to execute\n{(gitleaks.stdout + gitleaks.stderr).strip()[:2000]}")
+        failures.append(
+            f"gitleaks failed to execute\n{(gitleaks.stdout + gitleaks.stderr).strip()[:2000]}"
+        )
     elif gitleaks.returncode == 1:
-        failures.append(f"gitleaks detected secrets\n{(gitleaks.stdout + gitleaks.stderr).strip()[:2000]}")
+        failures.append(
+            f"gitleaks detected secrets\n{(gitleaks.stdout + gitleaks.stderr).strip()[:2000]}"
+        )
 
     trunk_files = [path for path in changed_files if (root / path).is_file()]
     failures.extend(run_trunk_check(root, trunk_files))
@@ -626,9 +690,13 @@ def main() -> int:
         max_files = int(budget.get("maxFiles", 8))
         max_lines = int(budget.get("maxLines", 400))
         if file_count > max_files:
-            failures.append(f"bounded change set exceeded: {file_count} files changed (max {max_files})")
+            failures.append(
+                f"bounded change set exceeded: {file_count} files changed (max {max_files})"
+            )
         if line_count > max_lines:
-            failures.append(f"bounded change set exceeded: {line_count} lines changed (max {max_lines})")
+            failures.append(
+                f"bounded change set exceeded: {line_count} lines changed (max {max_lines})"
+            )
 
     failures.extend(scan_changed_files(root, changed_files))
     failures.extend(run_contract_commands(root, contracts, changed_files))

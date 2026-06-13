@@ -91,7 +91,6 @@ jobs:
         env:
           DB_PASSWORD: echo_test
           ENVIRONMENT: test
-          OPENAI_API_KEY: sk-test-dummy-for-ci
         run: >-
           poetry run pytest
           --cov=src

@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.py[cod]
+*.egg-info
+.venv
+venv
+.mypy_cache
+.pytest_cache
+.ruff_cache
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Tests
+htmlcov
+.coverage
+coverage.xml
+.pytest_cache
+
+# CI/CD
+.github
+
+# Docs (not needed in image)
+*.md
+docs/
+
+# Trunk
+.trunk/out
+.trunk/plugins

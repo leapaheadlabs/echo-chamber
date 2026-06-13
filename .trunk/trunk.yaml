@@ -1,0 +1,56 @@
+# Trunk Check configuration — ECHO CHAMBER
+# https://docs.trunk.io/check/configuration
+version: 0.1
+cli:
+  version: 1.22.0
+
+plugins:
+  sources:
+    - id: trunk
+      ref: v1.6.0
+      uri: https://github.com/trunk-io/plugins
+
+lint:
+  enabled:
+    # Universal
+    - checkov@3.2.0
+    - gitleaks@8.22.0
+    - pre-commit-hooks@5.0.0
+    - trufflehog@3.82.0
+
+    # Python
+    - bandit@1.8.1
+    - ruff@0.9.0
+    - mypy@1.14.0
+
+    # Config & Infra
+    - yamllint@1.35.0
+    - actionlint@1.7.0
+    - hadolint@2.12.0
+    - dotenv-linter@3.3.0
+
+    # Secrets (additional)
+    - detect-secrets@1.5.0
+
+  disabled:
+    # We run these in CI; avoid duplicate noise
+    - oxipng
+    - svgo
+    - markdownlint  # Docs use extended syntax
+    - prettier      # We use ruff-format for Python
+
+  threshold:
+    - linters: [checkov, gitleaks, trufflehog]
+      level: high
+
+runtimes:
+  enabled:
+    - python@3.12.0
+    - node@22.0.0
+
+actions:
+  enabled:
+    - trunk-announce
+    - trunk-check-pre-push
+    - trunk-fmt-pre-commit
+    - trunk-upgrade-available

@@ -1,0 +1,53 @@
+# Gitleaks configuration — ECHO CHAMBER
+# https://github.com/gitleaks/gitleaks#configuration
+
+title = "ECHO CHAMBER gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+  description = "Global allowlist"
+
+  # Allow test/demo credentials in test files and docs only
+  paths = [
+    '''tests/.*''',
+    '''.env.example''',
+    '''.github/workflows/.*\\.yml''',
+    '''README.md''',
+    '''.*\\.md$'''
+  ]
+
+  # Allow known test/demo values (not real secrets)
+  regexes = [
+    '''echo_test''',
+    '''echo_chamber_test''',
+    '''test_secret_key_do_not_use_in_prod''',
+    '''change-me-in-production''',
+    '''EXAMPLE_API_KEY'''
+  ]
+
+# Custom detection rules
+[[rules]]
+  description = "OpenAI API key"
+  id = "openai-api-key"
+  regex = '''(sk-[a-zA-Z0-9]{20,})'''
+  tags = ["api-key", "openai"]
+
+[[rules]]
+  description = "Anthropic API key"
+  id = "anthropic-api-key"
+  regex = '''(sk-ant-[a-zA-Z0-9]{20,})'''
+  tags = ["api-key", "anthropic"]
+
+[[rules]]
+  description = "Reddit client secret"
+  id = "reddit-secret"
+  regex = '''(?i)(reddit.*secret[\"'\\s:=]+['"][a-zA-Z0-9_-]{20,}['"])'''
+  tags = ["api-key", "reddit"]
+
+[[rules]]
+  description = "Discord bot token"
+  id = "discord-bot-token"
+  regex = '''([MNO][a-zA-Z\\d_-]{23,25}\\.[\\w-]{6}\\.[\\w-]{27,})'''
+  tags = ["api-key", "discord"]

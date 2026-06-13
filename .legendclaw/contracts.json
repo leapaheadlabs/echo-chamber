@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "boundedChangeSet": {
+    "maxFiles": 40,
+    "maxLines": 5000
+  },
+  "requiredCommands": [],
+  "pathContracts": []
+}

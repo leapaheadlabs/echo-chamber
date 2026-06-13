@@ -66,7 +66,9 @@ def test_config_db_password_is_required(monkeypatch: pytest.MonkeyPatch) -> None
     from echo_chamber.config import Settings
 
     monkeypatch.delenv("DB_PASSWORD", raising=False)
-    with pytest.raises(ValueError, match="DB_PASSWORD"):
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    with pytest.raises(ValueError, match="db_password"):
         Settings(_env_file=None)
 
 

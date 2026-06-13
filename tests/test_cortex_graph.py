@@ -193,21 +193,21 @@ class TestCortexGraph(unittest.TestCase):
         """health_check node returns empty issues (stub)."""
         from echo_chamber.cortex.graph import health_check
 
-        result = health_check({})  # type: ignore[arg-type]
+        result = health_check({})
         self.assertEqual(result["health_issues"], [])
 
     def test_signal_ingest_rejects_invalid_dict(self) -> None:
         """signal_ingest returns error for invalid signal dict."""
         from echo_chamber.cortex.graph import signal_ingest
 
-        result = signal_ingest({"signal": {"bad_field": True}})
+        result = signal_ingest({"signal": {"bad_field": True}})  # type: ignore[arg-type]
         self.assertIn("errors", result)
 
     def test_signal_ingest_rejects_unexpected_type(self) -> None:
         """signal_ingest returns error for non-dict/non-Signal input."""
         from echo_chamber.cortex.graph import signal_ingest
 
-        result = signal_ingest({"signal": 12345})
+        result = signal_ingest({"signal": 12345})  # type: ignore[arg-type]
         self.assertIn("errors", result)
 
     def test_signal_classify_mention(self) -> None:
@@ -262,7 +262,7 @@ class TestCortexGraph(unittest.TestCase):
         """dispatch returns error when decision is missing."""
         from echo_chamber.cortex.graph import dispatch
 
-        result = dispatch({})  # type: ignore[arg-type]
+        result = dispatch({})
         self.assertIn("errors", result)
 
 

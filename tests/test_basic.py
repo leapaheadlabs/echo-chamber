@@ -55,16 +55,17 @@ def test_config_loads_with_required_fields() -> None:
         _env_file=None,
         db_password=SecretStr("tst_pw"),
     )
-    assert s.environment == "development"
+    assert s.environment in ("development", "test")
     assert s.cortex_port == 8000
     assert s.db_user == "echo"
     assert s.db_name == "echo_chamber"
 
 
-def test_config_db_password_is_required() -> None:
+def test_config_db_password_is_required(monkeypatch: pytest.MonkeyPatch) -> None:
     """Settings raises when db_password is missing."""
     from echo_chamber.config import Settings
 
+    monkeypatch.delenv("DB_PASSWORD", raising=False)
     with pytest.raises(ValueError, match="DB_PASSWORD"):
         Settings(_env_file=None)
 

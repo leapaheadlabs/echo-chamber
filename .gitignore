@@ -39,7 +39,6 @@ service-account.json
 htmlcov/
 .coverage
 .coverage.*
-coverage.xml
 *.sarif
 
 # ── OS ────────────────────────────────────────────────────────────────
